@@ -16,6 +16,7 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+    const color5 = "blue";
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -46,11 +47,11 @@
   </div>
 
   <script>
-    const correctPassword = "azerty123"; // 🔒 Mot de passe à modifier
+    
 
     function checkPassword() {
       const input = document.getElementById("passwordInput").value;
-      if (input === correctPassword) {
+      if (input === color5) {
         document.getElementById("login").style.display = "none";
         document.getElementById("content").style.display = "block";
       } else {
