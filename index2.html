@@ -42,7 +42,6 @@
 
   <div id="content">
     <h1>Bienvenue sur mon site !</h1>
-    <!-- Ici tu mets le contenu réel de ton site -->
     <p>Ceci est le contenu protégé.</p><br>
     
     <form id="uploadForm">
@@ -50,10 +49,9 @@
       <button type="submit">Uploader le fichier</button>
     </form>
 
-<p id="linkSection" style="display:none;">
-  ✅ Fichier uploadé : <a id="downloadLink" href="#" target="_blank">Télécharger</a>
-</p>
-
+    <p id="linkSection" style="display:none;">
+      ✅ Fichier uploadé : <a id="downloadLink" href="#" target="_blank">Télécharger</a>
+    </p>
   </div>
 
   <script>
@@ -64,45 +62,47 @@
       if (input === color5) {
         document.getElementById("login").style.display = "none";
         document.getElementById("content").style.display = "block";
-        initUploadListener();
+        initUploadListener(); // 👈 on appelle la bonne fonction ici
       } else {
         alert("Mot de passe incorrect !");
       }
     }
 
+    function initUploadListener() {
+      document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
-    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
 
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
+        if (!file) return alert("Aucun fichier sélectionné.");
 
-    if (!file) return alert("Aucun fichier sélectionné.");
+        const formData = new FormData();
+        formData.append("file", file);
 
-    const formData = new FormData();
-    formData.append("file", file);
+        try {
+          const response = await fetch("https://file.io/?expires=1d", {
+            method: "POST",
+            body: formData
+          });
 
-    const response = await fetch("https://file.io/?expires=1d", {
-      method: "POST",
-      body: formData
-    });
+          const result = await response.json();
 
-    const result = await response.json();
+          if (result.success) {
+            const link = result.link;
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = link;
+            downloadLink.textContent = link;
 
-    if (result.success) {
-      const link = result.link;
-      const downloadLink = document.getElementById('downloadLink');
-      downloadLink.href = link;
-      downloadLink.textContent = link;
-
-      document.getElementById('linkSection').style.display = "block";
-    } else {
-      alert("Erreur lors de l'envoi : " + result.message);
+            document.getElementById('linkSection').style.display = "block";
+          } else {
+            alert("Erreur lors de l'envoi : " + result.message);
+          }
+        } catch (error) {
+          alert("Erreur réseau : " + error);
+        }
+      });
     }
-  });
-
-
-    
   </script>
 
 </body>
