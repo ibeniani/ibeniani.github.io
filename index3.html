@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Révision de l'Impératif en Espagnol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #555;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            text-decoration: line-through;
+        }
+        .cross {
+            color: red;
+            font-size: 20px;
+        }
+        .quiz-input {
+            width: 100px;
+        }
+        .result-cell {
+            position: relative;
+        }
+        .result-cell .correction {
+            position: absolute;
+            top: 0;
+            right: 5px;
+            color: red;
+            font-size: 12px;
+        }
+        .music {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dedicace {
+            text-align: center;
+            margin-top: 40px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Révision de l'Impératif en Espagnol</h1>
+    
+    <div class="music">
+        <div id="player"></div>
+    </div>
+    
+    <p>Ce site vous aide à réviser l'impératif des verbes réguliers en espagnol. Choisissez le type de verbe (AR, ER, IR), entrez un verbe complet (par exemple : hablar, comer, vivir), et utilisez les modes "Conjuguer" ou "Quiz" pour pratiquer.</p>
+    
+    <div class="section">
+        <h2>Conjugueur d'Impératif</h2>
+        <label for="type">Type de verbe :</label>
+        <select id="type">
+            <option value="AR">AR (ex: hablar)</option>
+            <option value="ER">ER (ex: comer)</option>
+            <option value="IR">IR (ex: vivir)</option>
+        </select>
+        <br>
+        <label for="verbe">Verbe complet :</label>
+        <input type="text" id="verbe" placeholder="Ex: hablar, comer, vivir">
+        <button onclick="conjuguer()">Conjuguer</button>
+        <button onclick="startQuiz()">Quiz</button>
+        <div id="resultat"></div>
+    </div>
+
+    <div class="section">
+        <h2>Rappels sur l'Impératif</h2>
+        <p><strong>Affirmatif :</strong> Utilisé pour donner des ordres positifs. Pas de forme pour "yo" ou "él/ella/usted" (mais on utilise le subjonctif pour "usted").</p>
+        <p><strong>Négatif :</strong> Utilisé pour donner des ordres négatifs, formé avec "no" + subjonctif présent.</p>
+        <ul>
+            <li><strong>AR :</strong> Tú: -a, Usted: -e, Nosotros/as: -emos, Vosotros/as: -ad, Ustedes: -en</li>
+            <li><strong>ER/IR :</strong> Tú: -e/-e, Usted: -a, Nosotros/as: -amos, Vosotros/as: -ed, Ustedes: -an</li>
+        </ul>
+    </div>
+
+    <div class="dedicace">
+        <p>Pour ma soeur préféré AYAAAA</p>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '200',
+                width: '300',
+                videoId: 'qrm8w-pV120',
+                playerVars: {
+                    'autoplay': 1,
+                    'mute': 0,
+                    'loop': 1,
+                    'playlist': 'qrm8w-pV120'
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+        function onPlayerReady(event) {
+            // Player is ready
+        }
+
+        function conjuguer() {
+            if (player && player.mute) {
+                player.mute();
+            }
+            const type = document.getElementById('type').value;
+            const verbe = document.getElementById('verbe').value.trim().toLowerCase();
+            const resultat = document.getElementById('resultat');
+            
+            if (!verbe) {
+                resultat.innerHTML = '<p class="error">Veuillez entrer un verbe.</p>';
+                return;
+            }
+            
+            // Vérifier la terminaison selon le type
+            let racine;
+            if (type === 'AR') {
+                if (!verbe.endsWith('ar')) {
+                    resultat.innerHTML = '<p class="error">Pour AR, le verbe doit se terminer par "ar" (ex: hablar).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            } else if (type === 'ER') {
+                if (!verbe.endsWith('er')) {
+                    resultat.innerHTML = '<p class="error">Pour ER, le verbe doit se terminer par "er" (ex: comer).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            } else if (type === 'IR') {
+                if (!verbe.endsWith('ir')) {
+                    resultat.innerHTML = '<p class="error">Pour IR, le verbe doit se terminer par "ir" (ex: vivir).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            }
+            
+            let affirmatif = {};
+            let negatif = {};
+            
+            if (type === 'AR') {
+                affirmatif = {
+                    tu: racine + 'a',
+                    usted: racine + 'e', // subjonctif pour affirmatif
+                    nosotros: racine + 'emos',
+                    vosotros: racine + 'ad',
+                    ustedes: racine + 'en'
+                };
+                negatif = {
+                    tu: 'no ' + racine + 'es',
+                    usted: 'no ' + racine + 'e',
+                    nosotros: 'no ' + racine + 'emos',
+                    vosotros: 'no ' + racine + 'éis',
+                    ustedes: 'no ' + racine + 'en'
+                };
+            } else if (type === 'ER' || type === 'IR') {
+                affirmatif = {
+                    tu: racine + 'e',
+                    usted: racine + 'a', // subjonctif pour affirmatif
+                    nosotros: racine + 'amos',
+                    vosotros: racine + 'ed',
+                    ustedes: racine + 'an'
+                };
+                negatif = {
+                    tu: 'no ' + racine + 'as',
+                    usted: 'no ' + racine + 'a',
+                    nosotros: 'no ' + racine + 'amos',
+                    vosotros: 'no ' + racine + 'áis',
+                    ustedes: 'no ' + racine + 'an'
+                };
+            }
+            
+            // Afficher le tableau
+            resultat.innerHTML = `
+                <h3>Conjugaisons pour "${verbe}"</h3>
+                <table>
+                    <tr>
+                        <th>Personne</th>
+                        <th>Affirmatif</th>
+                        <th>Négatif</th>
+                    </tr>
+                    <tr>
+                        <td>Tú</td>
+                        <td>${affirmatif.tu}</td>
+                        <td>${negatif.tu}</td>
+                    </tr>
+                    <tr>
+                        <td>Usted</td>
+                        <td>${affirmatif.usted}</td>
+                        <td>${negatif.usted}</td>
+                    </tr>
+                    <tr>
+                        <td>Nosotros/as</td>
+                        <td>${affirmatif.nosotros}</td>
+                        <td>${negatif.nosotros}</td>
+                    </tr>
+                    <tr>
+                        <td>Vosotros/as</td>
+                        <td>${affirmatif.vosotros}</td>
+                        <td>${negatif.vosotros}</td>
+                    </tr>
+                    <tr>
+                        <td>Ustedes</td>
+                        <td>${affirmatif.ustedes}</td>
+                        <td>${negatif.ustedes}</td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        function startQuiz() {
+            if (player && player.mute) {
+                player.mute();
+            }
+            const type = document.getElementById('type').value;
+            const verbe = document.getElementById('verbe').value.trim().toLowerCase();
+            const resultat = document.getElementById('resultat');
+            
+            if (!verbe) {
+                resultat.innerHTML = '<p class="error">Veuillez entrer un verbe.</p>';
+                return;
+            }
+            
+            // Vérifier la terminaison et extraire la racine
+            let racine;
+            if (type === 'AR') {
+                if (!verbe.endsWith('ar')) {
+                    resultat.innerHTML = '<p class="error">Pour AR, le verbe doit se terminer par "ar" (ex: hablar).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            } else if (type === 'ER') {
+                if (!verbe.endsWith('er')) {
+                    resultat.innerHTML = '<p class="error">Pour ER, le verbe doit se terminer par "er" (ex: comer).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            } else if (type === 'IR') {
+                if (!verbe.endsWith('ir')) {
+                    resultat.innerHTML = '<p class="error">Pour IR, le verbe doit se terminer par "ir" (ex: vivir).</p>';
+                    return;
+                }
+                racine = verbe.slice(0, -2);
+            }
+            
+            // Calculer les bonnes réponses
+            let bonnesReponses = {};
+            
+            if (type === 'AR') {
+                bonnesReponses = {
+                    tu_aff: racine + 'a',
+                    tu_neg: 'no ' + racine + 'es',
+                    usted_aff: racine + 'e',
+                    usted_neg: 'no ' + racine + 'e',
+                    nosotros_aff: racine + 'emos',
+                    nosotros_neg: 'no ' + racine + 'emos',
+                    vosotros_aff: racine + 'ad',
+                    vosotros_neg: 'no ' + racine + 'éis',
+                    ustedes_aff: racine + 'en',
+                    ustedes_neg: 'no ' + racine + 'en'
+                };
+            } else if (type === 'ER' || type === 'IR') {
+                bonnesReponses = {
+                    tu_aff: racine + 'e',
+                    tu_neg: 'no ' + racine + 'as',
+                    usted_aff: racine + 'a',
+                    usted_neg: 'no ' + racine + 'a',
+                    nosotros_aff: racine + 'amos',
+                    nosotros_neg: 'no ' + racine + 'amos',
+                    vosotros_aff: racine + 'ed',
+                    vosotros_neg: 'no ' + racine + 'áis',
+                    ustedes_aff: racine + 'an',
+                    ustedes_neg: 'no ' + racine + 'an'
+                };
+            }
+            
+            // Afficher le formulaire de quiz
+            resultat.innerHTML = `
+                <h3>Quiz pour "${verbe}"</h3>
+                <p>Entrez les conjugaisons pour chaque personne. Pour les négatifs, "no " est pré-écrit et ne peut pas être effacé.</p>
+                <table>
+                    <tr>
+                        <th>Personne</th>
+                        <th>Affirmatif</th>
+                        <th>Négatif</th>
+                    </tr>
+                    <tr>
+                        <td>Tú</td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="tu_aff"></td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="tu_neg" value="no "></td>
+                    </tr>
+                    <tr>
+                        <td>Usted</td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="usted_aff"></td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="usted_neg" value="no "></td>
+                    </tr>
+                    <tr>
+                        <td>Nosotros/as</td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="nosotros_aff"></td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="nosotros_neg" value="no "></td>
+                    </tr>
+                    <tr>
+                        <td>Vosotros/as</td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="vosotros_aff"></td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="vosotros_neg" value="no "></td>
+                    </tr>
+                    <tr>
+                        <td>Ustedes</td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="ustedes_aff"></td>
+                        <td class="result-cell"><input type="text" class="quiz-input" id="ustedes_neg" value="no "></td>
+                    </tr>
+                </table>
+                <button onclick="verifierQuiz(${JSON.stringify(bonnesReponses).replace(/"/g, '&quot;')})">Vérifier</button>
+                <button onclick="recommencerQuiz()">Recommencer</button>
+                <div id="quiz-resultat"></div>
+            `;
+            
+            // Empêcher l'effacement de "no " dans les champs négatifs
+            const personnes = ['tu', 'usted', 'nosotros', 'vosotros', 'ustedes'];
+            personnes.forEach(personne => {
+                const negInput = document.getElementById(personne + '_neg');
+                negInput.addEventListener('input', function() {
+                    if (!this.value.startsWith('no ')) {
+                        this.value = 'no ';
+                    }
+                });
+            });
+        }
+
+        function verifierQuiz(bonnesReponses) {
+            const personnes = ['tu', 'usted', 'nosotros', 'vosotros', 'ustedes'];
+            let score = 0;
+            let total = 10; // 5 personnes x 2 (aff et neg)
+            
+            personnes.forEach(personne => {
+                const affInput = document.getElementById(personne + '_aff');
+                const negInput = document.getElementById(personne + '_neg');
+                const affValue = affInput.value.trim().toLowerCase();
+                const negValue = negInput.value.trim().toLowerCase();
+                const affCorrect = bonnesReponses[personne + '_aff'];
+                const negCorrect = bonnesReponses[personne + '_neg'];
+                
+                // Pour affirmatif
+                if (affValue === affCorrect) {
+                    affInput.outerHTML = `<span class="correct">${affValue}</span>`;
+                    score++;
+                } else if (affValue === '') {
+                    affInput.outerHTML = `<span class="cross">✗</span><span class="correction">${affCorrect}</span>`;
+                } else {
+                    affInput.outerHTML = `<span class="incorrect">${affValue}</span><span class="correction">${affCorrect}</span>`;
+                }
+                
+                // Pour négatif
+                if (negValue === negCorrect) {
+                    negInput.outerHTML = `<span class="correct">${negValue}</span>`;
+                    score++;
+                } else if (negValue === 'no ') {
+                    negInput.outerHTML = `<span class="cross">✗</span><span class="correction">${negCorrect}</span>`;
+                } else {
+                    negInput.outerHTML = `<span class="incorrect">${negValue}</span><span class="correction">${negCorrect}</span>`;
+                }
+            });
+            
+            const quizResultat = document.getElementById('quiz-resultat');
+            quizResultat.innerHTML = `<p>Score: ${score}/${total}</p>`;
+            
+            // Si score <= 9, jouer la vidéo de punition de 2s à 15s, sans boucle
+            if (score <= 9 && player) {
+                player.loadVideoById({
+                    videoId: 'hahHDZk1g5Q',
+                    startSeconds: 2,
+                    endSeconds: 15
+                });
+                player.unMute(); // Assurer que le son est activé
+            }
+        }
+
+        function recommencerQuiz() {
+            startQuiz(); // Relancer le quiz
+        }
+    </script>
+</body>
+</html>
