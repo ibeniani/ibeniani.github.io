@@ -65,6 +65,7 @@
                             <th>Prénom</th>
                             <th>Téléphone</th>
                             <th>Modèle Téléphone</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="clientsTableBody"></tbody>
@@ -88,7 +89,18 @@
                     <button type="submit" class="btn btn-success">Ajouter Réparation</button>
                 </form>
                 <h3 class="mt-4">Liste des Réparations</h3>
-                <ul id="repairsList" class="list-group"></ul>
+                <table class="table table-striped" id="repairsTable">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Problème</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repairsTableBody"></tbody>
+                </table>
             </div>
             
             <!-- Onglet Annonces Ventes -->
@@ -102,7 +114,18 @@
                     <button type="submit" class="btn btn-success">Publier Annonce</button>
                 </form>
                 <h3 class="mt-4">Annonces Actives</h3>
-                <ul id="salesList" class="list-group"></ul>
+                <table class="table table-striped" id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>Modèle</th>
+                            <th>Prix</th>
+                            <th>Description</th>
+                            <th>Image</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -190,6 +213,7 @@
                     <td>${data.prenom}</td>
                     <td>${data.tel}</td>
                     <td>${data.model}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteClient('${doc.id}')">Supprimer</button></td>
                 `;
                 clientsTableBody.appendChild(row);
             });
@@ -206,28 +230,49 @@
         }
 
         async function loadRepairs() {
-            const repairsList = document.getElementById('repairsList');
-            repairsList.innerHTML = '';
+            const repairsTableBody = document.getElementById('repairsTableBody');
+            repairsTableBody.innerHTML = '';
             const querySnapshot = await db.collection('repairs').get();
-            querySnapshot.forEach((doc) => {
+            for (const doc of querySnapshot.docs) {
                 const data = doc.data();
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `Client: ${data.clientId} - Problème: ${data.problem} - Date: ${data.date} - Statut: ${data.status}`;
-                repairsList.appendChild(li);
-            });
+                // Récupérer le nom du client
+                let clientName = 'Client inconnu';
+                try {
+                    const clientDoc = await db.collection('clients').doc(data.clientId).get();
+                    if (clientDoc.exists) {
+                        const clientData = clientDoc.data();
+                        clientName = `${clientData.nom} ${clientData.prenom}`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching client:', error);
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${clientName}</td>
+                    <td>${data.problem}</td>
+                    <td>${data.date}</td>
+                    <td>${data.status}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteRepair('${doc.id}')">Supprimer</button></td>
+                `;
+                repairsTableBody.appendChild(row);
+            }
         }
 
         async function loadSales() {
-            const salesList = document.getElementById('salesList');
-            salesList.innerHTML = '';
+            const salesTableBody = document.getElementById('salesTableBody');
+            salesTableBody.innerHTML = '';
             const querySnapshot = await db.collection('sales').get();
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${data.model} - ${data.price}€ - ${data.desc}`;
-                salesList.appendChild(li);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.model}</td>
+                    <td>${data.price}€</td>
+                    <td>${data.desc}</td>
+                    <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSale('${doc.id}')">Supprimer</button></td>
+                `;
+                salesTableBody.appendChild(row);
             });
         }
 
@@ -288,7 +333,43 @@
                 alert('Erreur lors de l\'ajout de l\'annonce : ' + error.message);
             }
         });
+
+        // Fonctions de suppression
+        window.deleteClient = async (id) => {
+            if (confirm('Supprimer ce client ?')) {
+                try {
+                    await db.collection('clients').doc(id).delete();
+                    loadClients();
+                } catch (error) {
+                    console.error('Error deleting client:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+
+        window.deleteRepair = async (id) => {
+            if (confirm('Supprimer cette réparation ?')) {
+                try {
+                    await db.collection('repairs').doc(id).delete();
+                    loadRepairs();
+                } catch (error) {
+                    console.error('Error deleting repair:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+
+        window.deleteSale = async (id) => {
+            if (confirm('Supprimer cette annonce ?')) {
+                try {
+                    await db.collection('sales').doc(id).delete();
+                    loadSales();
+                } catch (error) {
+                    console.error('Error deleting sale:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
     </script>
 </body>
 </html>
-       
