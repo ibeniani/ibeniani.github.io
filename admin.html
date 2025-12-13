@@ -10,17 +10,18 @@
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
       import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
       import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+      import { initializeApp } from "firebase/app";
+      import { getAnalytics } from "firebase/analytics";
 
       const firebaseConfig = {
-        // Colle TA vraie config Firebase ici (de la console)
-        apiKey: "TA_CLE_API",
-        authDomain: "fastfix72.firebaseapp.com",
-        projectId: "fastfix72",
-        storageBucket: "fastfix72.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef"
-      };
-
+  apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
+  authDomain: "fastfix72-45e6b.firebaseapp.com",
+  projectId: "fastfix72-45e6b",
+  storageBucket: "fastfix72-45e6b.firebasestorage.app",
+  messagingSenderId: "90073792848",
+  appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
+  measurementId: "G-60F64PQP29"
+};
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
