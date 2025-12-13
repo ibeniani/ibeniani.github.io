@@ -36,6 +36,33 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+// Charger les annonces au chargement de la page
+    window.addEventListener('load', async () => {
+        const salesContainer = document.querySelector('#ventes .row'); // Assure-toi que la section Ventes a une row
+        salesContainer.innerHTML = ''; // Vider avant de charger
+        try {
+            const querySnapshot = await db.collection('sales').get();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const col = document.createElement('div');
+                col.className = 'col-md-4';
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${data.image || 'https://via.placeholder.com/200'}" class="card-img-top" alt="${data.model}">
+                        <div class="card-body">
+                            <h5 class="card-title">${data.model} - ${data.price}€</h5>
+                            <p class="card-text">${data.desc}</p>
+                            <a href="#contact" class="btn btn-success">Acheter</a>
+                        </div>
+                    </div>
+                `;
+                salesContainer.appendChild(col);
+            });
+        } catch (error) {
+            console.error('Error loading sales:', error);
+        }
+    });
     </script>
 </head>
 <body>
