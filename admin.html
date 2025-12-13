@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - FastFix 72</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css"> <!-- Ton CSS -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+      import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+      import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+      const firebaseConfig = {
+        // Même config que dans index.html
+        apiKey: "TA_CLE_API",
+        authDomain: "fastfix72.firebaseapp.com",
+        projectId: "fastfix72",
+        storageBucket: "fastfix72.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.auth = auth;
+      window.db = db;
+      window.collection = collection;
+      window.addDoc = addDoc;
+      window.getDocs = getDocs;
+      window.doc = doc;
+      window.updateDoc = updateDoc;
+      window.deleteDoc = deleteDoc;
+      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+      window.signOut = signOut;
+      window.onAuthStateChanged = onAuthStateChanged;
+    </script>
+</head>
+<body>
+    <div id="loginSection" class="container mt-5">
+        <h2>Connexion Admin</h2>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Se connecter</button>
+        </form>
+        <p id="loginError" class="text-danger mt-3" style="display:none;"></p>
+    </div>
+
+    <div id="adminSection" style="display:none;" class="container mt-5">
+        <h2>Dashboard Admin</h2>
+        <button id="logoutBtn" class="btn btn-danger mb-3">Se déconnecter</button>
+        
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="clients-tab" data-bs-toggle="tab" href="#clients" role="tab">Clients</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="repairs-tab" data-bs-toggle="tab" href="#repairs" role="tab">Réparations</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="sales-tab" data-bs-toggle="tab" href="#sales" role="tab">Annonces Ventes</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="adminTabContent">
+            <!-- Onglet Clients -->
+            <div class="tab-pane fade show active" id="clients" role="tabpanel">
+                <h3>Ajouter un Client</h3>
+                <form id="addClientForm">
+                    <div class="row">
+                        <div class="col-md-3"><input type="text" class="form-control" placeholder="Nom" id="clientNom" required></div>
+                        <div class="col-md-3"><input type="text" class="form-control" placeholder="Prénom" id="clientPrenom" required></div>
+                        <div class="col-md-3"><input type="tel" class="form-control" placeholder="Téléphone" id="clientTel" required></div>
+                        <div class="col-md-3"><input type="text" class="form-control" placeholder="Modèle Téléphone" id="clientModel" required></div>
+                    </div>
+                    <button type="submit" class="btn btn-success mt-3">Ajouter Client</button>
+                </form>
+                <h3 class="mt-4">Liste des Clients</h3>
+                <ul id="clientsList" class="list-group"></ul>
+            </div>
+            
+            <!-- Onglet Réparations -->
+            <div class="tab-pane fade" id="repairs" role="tabpanel">
+                <h3>Ajouter une Réparation</h3>
+                <form id="addRepairForm">
+                    <select class="form-control mb-3" id="repairClient" required>
+                        <option value="">Sélectionner un client</option>
+                        <!-- Options remplies dynamiquement -->
+                    </select>
+                    <input type="text" class="form-control mb-3" placeholder="Problème" id="repairProblem" required>
+                    <select class="form-control mb-3" id="repairStatus">
+                        <option value="En attente">En attente</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Terminée">Terminée</option>
+                    </select>
+                    <button type="submit" class="btn btn-success">Ajouter Réparation</button>
+                </form>
+                <h3 class="mt-4">Liste des Réparations</h3>
+                <ul id="repairsList" class="list-group"></ul>
+            </div>
+            
+            <!-- Onglet Annonces Ventes -->
+            <div class="tab-pane fade" id="sales" role="tabpanel">
+                <h3>Ajouter une Annonce</h3>
+                <form id="addSaleForm">
+                    <input type="text" class="form-control mb-3" placeholder="Modèle (ex. iPhone 12)" id="saleModel" required>
+                    <input type="number" class="form-control mb-3" placeholder="Prix (€)" id="salePrice" required>
+                    <textarea class="form-control mb-3" placeholder="Description" id="saleDesc" required></textarea>
+                    <input type="url" class="form-control mb-3" placeholder="URL Image" id="saleImage">
+                    <button type="submit" class="btn btn-success">Publier Annonce</button>
+                </form>
+                <h3 class="mt-4">Annonces Actives</h3>
+                <ul id="salesList" class="list-group"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin.js"></script> <!-- Script séparé pour la logique -->
+</body>
+</html>
