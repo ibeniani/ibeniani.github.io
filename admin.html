@@ -205,9 +205,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        console.log('Script started'); // Debug au début
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded'); // Debug
+            try {
+                console.log('Script started'); // Debug
 
-        const firebaseConfig = {
+                const firebaseConfig = {
             apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
             authDomain: "fastfix72-45e6b.firebaseapp.com",
             projectId: "fastfix72-45e6b",
@@ -217,145 +220,160 @@
             measurementId: "G-60F64PQP29"
         };
 
-        try {
-            firebase.initializeApp(firebaseConfig);
-            console.log('Firebase initialized successfully'); // Debug
-        } catch (error) {
-            console.error('Firebase init error:', error);
-        }
-
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        const loginForm = document.getElementById('loginForm');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const loginSection = document.getElementById('loginSection');
-        const adminSection = document.getElementById('adminSection');
-        const loginError = document.getElementById('loginError');
-
-        loginForm.addEventListener('submit', async (e) => {
-            console.log('Login form submitted'); // Debug
-            e.preventDefault(); // Bloque le refresh
-            console.log('Prevent default called'); // Debug
-            const email = loginForm.email.value;
-            const password = loginForm.password.value;
-            console.log('Email:', email); // Debug
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                console.log('Login successful, user:', userCredential.user.email);
-                loginSection.style.display = 'none';
-                adminSection.style.display = 'block';
-                loadData();
-            } catch (error) {
-                console.error('Login error:', error);
-                loginError.textContent = 'Erreur : ' + error.message;
-                loginError.style.display = 'block';
-            }
-        });
-
-        logoutBtn.addEventListener('click', async () => {
-            await auth.signOut();
-            loginSection.style.display = 'block';
-            adminSection.style.display = 'none';
-        });
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log('User logged in:', user.email);
-                loginSection.style.display = 'none';
-                adminSection.style.display = 'block';
-                loadData();
-            } else {
-                console.log('No user logged in');
-            }
-        });
-
-        async function loadData() {
-            try {
-                await loadClients();
-                await loadRepairs();
-                await loadSales();
-            } catch (error) {
-                console.error('Error loading data:', error);
-            }
-        }
-
-        async function loadClients() {
-            const clientsTableBody = document.getElementById('clientsTableBody');
-            clientsTableBody.innerHTML = '';
-            const querySnapshot = await db.collection('clients').get();
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${data.nom}</td>
-                    <td>${data.prenom}</td>
-                    <td>${data.tel}</td>
-                    <td>${data.model}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm me-2" onclick="editClient('${doc.id}', '${data.nom}', '${data.prenom}', '${data.tel}', '${data.model}')">Modifier</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteClient('${doc.id}')">Supprimer</button>
-                    </td>
-                `;
-                clientsTableBody.appendChild(row);
-            });
-            // Peupler les selects
-            const repairClientSelect = document.getElementById('repairClient');
-            const editRepairClientSelect = document.getElementById('editRepairClient');
-            repairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
-            editRepairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const option1 = document.createElement('option');
-                option1.value = doc.id;
-                option1.textContent = `${data.nom} ${data.prenom}`;
-                repairClientSelect.appendChild(option1);
-                const option2 = option1.cloneNode(true);
-                editRepairClientSelect.appendChild(option2);
-            });
-        }
-
-        async function loadRepairs() {
-            const repairsTableBody = document.getElementById('repairsTableBody');
-            repairsTableBody.innerHTML = '';
-            const querySnapshot = await db.collection('repairs').get();
-            for (const doc of querySnapshot.docs) {
-                const data = doc.data();
-                let clientName = 'Client inconnu';
-                try {
-                    const clientDoc = await db.collection('clients').doc(data.clientId).get();
-                    if (clientDoc.exists) {
-                        const clientData = clientDoc.data();
-                        clientName = `${clientData.nom} ${clientData.prenom}`;
-                    }
-                } catch (error) {
-                    console.error('Error fetching client:', error);
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                    console.log('Firebase initialized successfully');
+                } else {
+                    console.log('Firebase already initialized');
                 }
-                const statusBadge = data.status === 'En attente' ? 'badge bg-warning' : data.status === 'En cours' ? 'badge bg-danger' : 'badge bg-success';
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${clientName}</td>
-                    <td>${data.problem}</td>
-                    <td>${data.date}</td>
-                    <td><span class="${statusBadge}">${data.status}</span></td>
-                    <td>
-                        <button class="btn btn-warning btn-sm me-2" onclick="editRepair('${doc.id}', '${data.clientId}', '${data.problem}', '${data.date}', '${data.status}')">Modifier</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteRepair('${doc.id}')">Supprimer</button>
-                    </td>
-                `;
-                repairsTableBody.appendChild(row);
-            }
-        }
 
-        async function loadSales() {
-            const salesTableBody = document.getElementById('salesTableBody');
-            salesTableBody.innerHTML = '';
-            const querySnapshot = await db.collection('sales').get();
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
-                   
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+
+                const loginForm = document.getElementById('loginForm');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const loginSection = document.getElementById('loginSection');
+                const adminSection = document.getElementById('adminSection');
+                const loginError = document.getElementById('loginError');
+
+                loginForm.addEventListener('submit', async (e) => {
+                    console.log('Login form submitted');
+                    e.preventDefault(); // Bloque le refresh
+                    console.log('Prevent default called');
+                    const email = loginForm.email.value;
+                    const password = loginForm.password.value;
+                    console.log('Email:', email);
+                    try {
+                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                        console.log('Login successful, user:', userCredential.user.email);
+                        loginSection.style.display = 'none';
+                        adminSection.style.display = 'block';
+                        loadData();
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        loginError.textContent = 'Erreur : ' + error.message;
+                        loginError.style.display = 'block';
+                    }
+                });
+
+                logoutBtn.addEventListener('click', async () => {
+                    await auth.signOut();
+                    loginSection.style.display = 'block';
+                    adminSection.style.display = 'none';
+                });
+
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        console.log('User logged in:', user.email);
+                        loginSection.style.display = 'none';
+                        adminSection.style.display = 'block';
+                        loadData();
+                    } else {
+                        console.log('No user logged in');
+                    }
+                });
+
+                async function loadData() {
+                    try {
+                        await loadClients();
+                        await loadRepairs();
+                        await loadSales();
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                    }
+                }
+
+                async function loadClients() {
+                    const clientsTableBody = document.getElementById('clientsTableBody');
+                    clientsTableBody.innerHTML = '';
+                    const querySnapshot = await db.collection('clients').get();
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${data.nom}</td>
+                            <td>${data.prenom}</td>
+                            <td>${data.tel}</td>
+                            <td>${data.model}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editClient('${doc.id}', '${data.nom}', '${data.prenom}', '${data.tel}', '${data.model}')">Modifier</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteClient('${doc.id}')">Supprimer</button>
+                            </td>
+                        `;
+                        clientsTableBody.appendChild(row);
+                    });
+                    // Peupler les selects
+                    const repairClientSelect = document.getElementById('repairClient');
+                    const editRepairClientSelect = document.getElementById('editRepairClient');
+                    repairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
+                    editRepairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const option1 = document.createElement('option');
+                        option1.value = doc.id;
+                        option1.textContent = `${data.nom} ${data.prenom}`;
+                        repairClientSelect.appendChild(option1);
+                        const option2 = option1.cloneNode(true);
+                        editRepairClientSelect.appendChild(option2);
+                    });
+                }
+
+                async function loadRepairs() {
+                    const repairsTableBody = document.getElementById('repairsTableBody');
+                    repairsTableBody.innerHTML = '';
+                    const querySnapshot = await db.collection('repairs').get();
+                    for (const doc of querySnapshot.docs) {
+                        const data = doc.data();
+                        let clientName = 'Client inconnu';
+                        try {
+                            const clientDoc = await db.collection('clients').doc(data.clientId).get();
+                            if (clientDoc.exists) {
+                                const clientData = clientDoc.data();
+                                clientName = `${clientData.nom} ${clientData.prenom}`;
+                            }
+                        } catch (error) {
+                            console.error('Error fetching client:', error);
+                        }
+                        const statusBadge = data.status === 'En attente' ? 'badge bg-warning' : data.status === 'En cours' ? 'badge bg-danger' : 'badge bg-success';
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${clientName}</td>
+                            <td>${data.problem}</td>
+                            <td>${data.date}</td>
+                            <td><span class="${statusBadge}">${data.status}</span></td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-2" onclick="editRepair('${doc.id}', '${data.clientId}', '${data.problem}', '${data.date}', '${data.status}')">Modifier</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteRepair('${doc.id}')">Supprimer</button>
+                            </td>
+                        `;
+                        repairsTableBody.appendChild(row);
+                    }
+                }
+
+                async function loadSales() {
+                    const salesTableBody = document.getElementById('salesTableBody');
+                    salesTableBody.innerHTML = '';
+                    const querySnapshot = await db.collection('sales').get();
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
+                            <td>${data.model}</td>
+                            <td>${data.price}€</td>
+                            <td>${data.desc}</td>
                     
 
+<!--  
+
+       const firebaseConfig = {
+            apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
+            authDomain: "fastfix72-45e6b.firebaseapp.com",
+            projectId: "fastfix72-45e6b",
+            storageBucket: "fastfix72-45e6b.firebasestorage.app",
+            messagingSenderId: "90073792848",
+            appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
+            measurementId: "G-60F64PQP29"
+        };
+
+-->
