@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - FastFix 72</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css"> <!-- Ton CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div id="loginSection" class="container mt-5">
@@ -54,7 +57,18 @@
                     <button type="submit" class="btn btn-success mt-3">Ajouter Client</button>
                 </form>
                 <h3 class="mt-4">Liste des Clients</h3>
-                <ul id="clientsList" class="list-group"></ul>
+                <input type="text" id="searchClients" class="form-control mb-3" placeholder="Rechercher par nom...">
+                <table class="table table-striped" id="clientsTable">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Téléphone</th>
+                            <th>Modèle Téléphone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody"></tbody>
+                </table>
             </div>
             
             <!-- Onglet Réparations -->
@@ -63,9 +77,9 @@
                 <form id="addRepairForm">
                     <select class="form-control mb-3" id="repairClient" required>
                         <option value="">Sélectionner un client</option>
-                        <!-- Options remplies dynamiquement -->
                     </select>
                     <input type="text" class="form-control mb-3" placeholder="Problème" id="repairProblem" required>
+                    <input type="date" class="form-control mb-3" id="repairDate" required>
                     <select class="form-control mb-3" id="repairStatus">
                         <option value="En attente">En attente</option>
                         <option value="En cours">En cours</option>
@@ -84,7 +98,7 @@
                     <input type="text" class="form-control mb-3" placeholder="Modèle (ex. iPhone 12)" id="saleModel" required>
                     <input type="number" class="form-control mb-3" placeholder="Prix (€)" id="salePrice" required>
                     <textarea class="form-control mb-3" placeholder="Description" id="saleDesc" required></textarea>
-                    <input type="url" class="form-control mb-3" placeholder="URL Image" id="saleImage">
+                    <input type="url" class="form-control mb-3" placeholder="URL Image" id="saleImage" required>
                     <button type="submit" class="btn btn-success">Publier Annonce</button>
                 </form>
                 <h3 class="mt-4">Annonces Actives</h3>
@@ -94,13 +108,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module">
-        // Tout Firebase et JS ici pour éviter les conflits
-
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
             authDomain: "fastfix72-45e6b.firebaseapp.com",
@@ -111,78 +119,101 @@
             measurementId: "G-60F64PQP29"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // Fonctions pour la logique
+        console.log('Firebase initialized');
+
         const loginForm = document.getElementById('loginForm');
         const logoutBtn = document.getElementById('logoutBtn');
         const loginSection = document.getElementById('loginSection');
         const adminSection = document.getElementById('adminSection');
         const loginError = document.getElementById('loginError');
 
-        // Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('Login form submitted');
             const email = loginForm.email.value;
             const password = loginForm.password.value;
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await auth.signInWithEmailAndPassword(email, password);
+                console.log('Login successful');
                 loginSection.style.display = 'none';
                 adminSection.style.display = 'block';
                 loadData();
             } catch (error) {
+                console.error('Login error:', error);
                 loginError.textContent = 'Erreur : ' + error.message;
                 loginError.style.display = 'block';
             }
         });
 
-        // Logout
         logoutBtn.addEventListener('click', async () => {
-            await signOut(auth);
+            await auth.signOut();
             loginSection.style.display = 'block';
             adminSection.style.display = 'none';
         });
 
-        // Vérifier si connecté
-        onAuthStateChanged(auth, (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
+                console.log('User logged in:', user.email);
                 loginSection.style.display = 'none';
                 adminSection.style.display = 'block';
                 loadData();
+            } else {
+                console.log('No user logged in');
+                loginSection.style.display = 'block';
+                adminSection.style.display = 'none';
             }
         });
 
-        // Fonctions pour charger/afficher les données
         async function loadData() {
-            await loadClients();
-            await loadRepairs();
-            await loadSales();
+            try {
+                await loadClients();
+                await loadRepairs();
+                await loadSales();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
         }
 
         async function loadClients() {
-            const clientsList = document.getElementById('clientsList');
-            clientsList.innerHTML = '';
-            const querySnapshot = await getDocs(collection(db, 'clients'));
+            const clientsTableBody = document.getElementById('clientsTableBody');
+            clientsTableBody.innerHTML = '';
+            const querySnapshot = await db.collection('clients').get();
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${data.nom} ${data.prenom} - ${data.tel} - ${data.model}`;
-                clientsList.appendChild(li);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.nom}</td>
+                    <td>${data.prenom}</td>
+                    <td>${data.tel}</td>
+                    <td>${data.model}</td>
+                `;
+                clientsTableBody.appendChild(row);
+            });
+            // Peupler le select pour les réparations
+            const repairClientSelect = document.getElementById('repairClient');
+            repairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = `${data.nom} ${data.prenom}`;
+                repairClientSelect.appendChild(option);
             });
         }
 
         async function loadRepairs() {
             const repairsList = document.getElementById('repairsList');
             repairsList.innerHTML = '';
-            const querySnapshot = await getDocs(collection(db, 'repairs'));
+            const querySnapshot = await db.collection('repairs').get();
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'list-group-item';
-                li.textContent = `Client: ${data.clientId} - Problème: ${data.problem} - Statut: ${data.status}`;
+                li.textContent = `Client: ${data.clientId} - Problème: ${data.problem} - Date: ${data.date} - Statut: ${data.status}`;
                 repairsList.appendChild(li);
             });
         }
@@ -190,7 +221,7 @@
         async function loadSales() {
             const salesList = document.getElementById('salesList');
             salesList.innerHTML = '';
-            const querySnapshot = await getDocs(collection(db, 'sales'));
+            const querySnapshot = await db.collection('sales').get();
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
@@ -200,40 +231,64 @@
             });
         }
 
-        // Ajouter un client
+        // Barre de recherche pour clients
+        document.getElementById('searchClients').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#clientsTableBody tr');
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
         document.getElementById('addClientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nom = document.getElementById('clientNom').value;
-            const prenom = document.getElementById('clientPrenom').value;
-            const tel = document.getElementById('clientTel').value;
-            const model = document.getElementById('clientModel').value;
-            await addDoc(collection(db, 'clients'), { nom, prenom, tel, model });
-            loadClients();
-            e.target.reset();
+            try {
+                const nom = document.getElementById('clientNom').value;
+                const prenom = document.getElementById('clientPrenom').value;
+                const tel = document.getElementById('clientTel').value;
+                const model = document.getElementById('clientModel').value;
+                await db.collection('clients').add({ nom, prenom, tel, model });
+                loadClients();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding client:', error);
+                alert('Erreur lors de l\'ajout du client : ' + error.message);
+            }
         });
 
-        // Ajouter une réparation
         document.getElementById('addRepairForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const clientId = document.getElementById('repairClient').value;
-            const problem = document.getElementById('repairProblem').value;
-            const status = document.getElementById('repairStatus').value;
-            await addDoc(collection(db, 'repairs'), { clientId, problem, status });
-            loadRepairs();
-            e.target.reset();
+            try {
+                const clientId = document.getElementById('repairClient').value;
+                const problem = document.getElementById('repairProblem').value;
+                const date = document.getElementById('repairDate').value;
+                const status = document.getElementById('repairStatus').value;
+                await db.collection('repairs').add({ clientId, problem, date, status });
+                loadRepairs();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding repair:', error);
+                alert('Erreur lors de l\'ajout de la réparation : ' + error.message);
+            }
         });
 
-        // Ajouter une annonce
         document.getElementById('addSaleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const model = document.getElementById('saleModel').value;
-            const price = document.getElementById('salePrice').value;
-            const desc = document.getElementById('saleDesc').value;
-            const image = document.getElementById('saleImage').value;
-            await addDoc(collection(db, 'sales'), { model, price, desc, image });
-            loadSales();
-            e.target.reset();
+            try {
+                const model = document.getElementById('saleModel').value;
+                const price = document.getElementById('salePrice').value;
+                const desc = document.getElementById('saleDesc').value;
+                const image = document.getElementById('saleImage').value;
+                await db.collection('sales').add({ model, price, desc, image });
+                loadSales();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding sale:', error);
+                alert('Erreur lors de l\'ajout de l\'annonce : ' + error.message);
+            }
         });
     </script>
 </body>
 </html>
+       
