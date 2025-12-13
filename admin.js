@@ -1,4 +1,4 @@
-// admin.js - Logique pour la page admin
+// admin.js - Logique pour la page admin 
 
 // Login
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
