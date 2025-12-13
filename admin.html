@@ -353,7 +353,184 @@
                     <td>${data.desc}</td>
                     <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
                     <td>
-                        <button class="                    
+                        <button class="btn btn-warning btn-sm me-2" onclick="editSale('${doc.id}', '${data.model}', '${data.price}', '${data.desc}', '${data.image}')">Modifier</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSale('${doc.id}')">Supprimer</button>
+                    </td>
+                `;
+                salesTableBody.appendChild(row);
+            });
+        }
+
+        // Barre de recherche pour clients
+        document.getElementById('searchClients').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#clientsTableBody tr');
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('addClientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const nom = document.getElementById('clientNom').value;
+                const prenom = document.getElementById('clientPrenom').value;
+                const tel = document.getElementById('clientTel').value;
+                const model = document.getElementById('clientModel').value;
+                await db.collection('clients').add({ nom, prenom, tel, model });
+                loadClients();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding client:', error);
+                alert('Erreur lors de l\'ajout du client : ' + error.message);
+            }
+        });
+
+        document.getElementById('addRepairForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const clientId = document.getElementById('repairClient').value;
+                const problem = document.getElementById('repairProblem').value;
+                const date = document.getElementById('repairDate').value;
+                const status = document.getElementById('repairStatus').value;
+                await db.collection('repairs').add({ clientId, problem, date, status });
+                loadRepairs();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding repair:', error);
+                alert('Erreur lors de l\'ajout de la réparation : ' + error.message);
+            }
+        });
+
+        document.getElementById('addSaleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const model = document.getElementById('saleModel').value;
+                const price = document.getElementById('salePrice').value;
+                const desc = document.getElementById('saleDesc').value;
+                const image = document.getElementById('saleImage').value;
+                await db.collection('sales').add({ model, price, desc, image });
+                loadSales();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding sale:', error);
+                alert('Erreur lors de l\'ajout de l\'annonce : ' + error.message);
+            }
+        });
+
+        // Fonctions de suppression
+        window.deleteClient = async (id) => {
+            if (confirm('Supprimer ce client ?')) {
+                try {
+                    await db.collection('clients').doc(id).delete();
+                    loadClients();
+                } catch (error) {
+                    console.error('Error deleting client:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+
+        window.deleteRepair = async (id) => {
+            if (confirm('Supprimer cette réparation ?')) {
+                try {
+                    await db.collection('repairs').doc(id).delete();
+                    loadRepairs();
+                } catch (error) {
+                    console.error('Error deleting repair:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+
+        window.deleteSale = async (id) => {
+            if (confirm('Supprimer cette annonce ?')) {
+                try {
+                    await db.collection('sales').doc(id).delete();
+                    loadSales();
+                } catch (error) {
+                    console.error('Error deleting sale:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+
+        // Fonctions de modification
+        window.editClient = (id, nom, prenom, tel, model) => {
+            document.getElementById('editClientNom').value = nom;
+            document.getElementById('editClientPrenom').value = prenom;
+            document.getElementById('editClientTel').value = tel;
+            document.getElementById('editClientModel').value = model;
+            const modal = new bootstrap.Modal(document.getElementById('editClientModal'));
+            modal.show();
+            document.getElementById('saveClientBtn').onclick = async () => {
+                try {
+                    await db.collection('clients').doc(id).update({
+                        nom: document.getElementById('editClientNom').value,
+                        prenom: document.getElementById('editClientPrenom').value,
+                        tel: document.getElementById('editClientTel').value,
+                        model: document.getElementById('editClientModel').value
+                    });
+                    modal.hide();
+                    loadClients();
+                } catch (error) {
+                    console.error('Error updating client:', error);
+                    alert('Erreur lors de la modification : ' + error.message);
+                }
+            };
+        };
+
+        window.editRepair = (id, clientId, problem, date, status) => {
+            document.getElementById('editRepairClient').value = clientId;
+            document.getElementById('editRepairProblem').value = problem;
+            document.getElementById('editRepairDate').value = date;
+            document.getElementById('editRepairStatus').value = status;
+            const modal = new bootstrap.Modal(document.getElementById('editRepairModal'));
+            modal.show();
+            document.getElementById('saveRepairBtn').onclick = async () => {
+                try {
+                    await db.collection('repairs').doc(id).update({
+                        clientId: document.getElementById('editRepairClient').value,
+                        problem: document.getElementById('editRepairProblem').value,
+                        date: document.getElementById('editRepairDate').value,
+                        status: document.getElementById('editRepairStatus').value
+                    });
+                    modal.hide();
+                    loadRepairs();
+                } catch (error) {
+                    console.error('Error updating repair:', error);
+                    alert('Erreur lors de la modification : ' + error.message);
+                }
+            };
+        };
+
+        window.editSale = (id, model, price, desc, image) => {
+            document.getElementById('editSaleModel').value = model;
+            document.getElementById('editSalePrice').value = price;
+            document.getElementById('editSaleDesc').value = desc;
+            document.getElementById('editSaleImage').value = image;
+            const modal = new bootstrap.Modal(document.getElementById('editSaleModal'));
+            modal.show();
+            document.getElementById('saveSaleBtn').onclick = async () => {
+                try {
+                    await db.collection('sales').doc(id).update({
+                        model: document.getElementById('editSaleModel').value,
+                        price: document.getElementById('editSalePrice').value,
+                        desc: document.getElementById('editSaleDesc').value,
+                        image: document.getElementById('editSaleImage').value
+                    });
+                    modal.hide();
+                    loadSales();
+                } catch (error) {
+                    console.error('Error updating sale:', error);
+                    alert('Erreur lors de la modification : ' + error.message);
+                }
+            };
+        };
+    </script>
+</body>
+</html>              
 
 <!--  
 
