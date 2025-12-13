@@ -6,39 +6,6 @@
     <title>Admin - FastFix 72</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css"> <!-- Ton CSS -->
-    <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-      import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-      import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-      import { initializeApp } from "firebase/app";
-      import { getAnalytics } from "firebase/analytics";
-
-      const firebaseConfig = {
-  apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
-  authDomain: "fastfix72-45e6b.firebaseapp.com",
-  projectId: "fastfix72-45e6b",
-  storageBucket: "fastfix72-45e6b.firebasestorage.app",
-  messagingSenderId: "90073792848",
-  appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
-  measurementId: "G-60F64PQP29"
-};
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-
-      // Assigne à window pour utiliser dans le script principal
-      window.auth = auth;
-      window.db = db;
-      window.collection = collection;
-      window.addDoc = addDoc;
-      window.getDocs = getDocs;
-      window.doc = doc;
-      window.updateDoc = updateDoc;
-      window.deleteDoc = deleteDoc;
-      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-      window.signOut = signOut;
-      window.onAuthStateChanged = onAuthStateChanged;
-    </script>
 </head>
 <body>
     <div id="loginSection" class="container mt-5">
@@ -127,37 +94,64 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Tout le JS ici pour éviter les conflits
+    <script type="module">
+        // Tout Firebase et JS ici pour éviter les conflits
+
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
+            authDomain: "fastfix72-45e6b.firebaseapp.com",
+            projectId: "fastfix72-45e6b",
+            storageBucket: "fastfix72-45e6b.firebasestorage.app",
+            messagingSenderId: "90073792848",
+            appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
+            measurementId: "G-60F64PQP29"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Fonctions pour la logique
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginSection = document.getElementById('loginSection');
+        const adminSection = document.getElementById('adminSection');
+        const loginError = document.getElementById('loginError');
 
         // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
             try {
-                await window.signInWithEmailAndPassword(window.auth, email, password);
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('adminSection').style.display = 'block';
+                await signInWithEmailAndPassword(auth, email, password);
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
                 loadData();
             } catch (error) {
-                document.getElementById('loginError').textContent = 'Erreur : ' + error.message;
-                document.getElementById('loginError').style.display = 'block';
+                loginError.textContent = 'Erreur : ' + error.message;
+                loginError.style.display = 'block';
             }
         });
 
         // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await window.signOut(window.auth);
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('adminSection').style.display = 'none';
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            loginSection.style.display = 'block';
+            adminSection.style.display = 'none';
         });
 
         // Vérifier si connecté
-        window.onAuthStateChanged(window.auth, (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('adminSection').style.display = 'block';
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
                 loadData();
             }
         });
@@ -172,7 +166,7 @@
         async function loadClients() {
             const clientsList = document.getElementById('clientsList');
             clientsList.innerHTML = '';
-            const querySnapshot = await window.getDocs(window.collection(window.db, 'clients'));
+            const querySnapshot = await getDocs(collection(db, 'clients'));
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
@@ -185,7 +179,7 @@
         async function loadRepairs() {
             const repairsList = document.getElementById('repairsList');
             repairsList.innerHTML = '';
-            const querySnapshot = await window.getDocs(window.collection(window.db, 'repairs'));
+            const querySnapshot = await getDocs(collection(db, 'repairs'));
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
@@ -198,7 +192,7 @@
         async function loadSales() {
             const salesList = document.getElementById('salesList');
             salesList.innerHTML = '';
-            const querySnapshot = await window.getDocs(window.collection(window.db, 'sales'));
+            const querySnapshot = await getDocs(collection(db, 'sales'));
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
@@ -215,18 +209,18 @@
             const prenom = document.getElementById('clientPrenom').value;
             const tel = document.getElementById('clientTel').value;
             const model = document.getElementById('clientModel').value;
-            await window.addDoc(window.collection(window.db, 'clients'), { nom, prenom, tel, model });
+            await addDoc(collection(db, 'clients'), { nom, prenom, tel, model });
             loadClients();
             e.target.reset();
         });
 
-        // Ajouter une réparation (simplifié)
+        // Ajouter une réparation
         document.getElementById('addRepairForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const clientId = document.getElementById('repairClient').value;
             const problem = document.getElementById('repairProblem').value;
             const status = document.getElementById('repairStatus').value;
-            await window.addDoc(window.collection(window.db, 'repairs'), { clientId, problem, status });
+            await addDoc(collection(db, 'repairs'), { clientId, problem, status });
             loadRepairs();
             e.target.reset();
         });
@@ -238,7 +232,7 @@
             const price = document.getElementById('salePrice').value;
             const desc = document.getElementById('saleDesc').value;
             const image = document.getElementById('saleImage').value;
-            await window.addDoc(window.collection(window.db, 'sales'), { model, price, desc, image });
+            await addDoc(collection(db, 'sales'), { model, price, desc, image });
             loadSales();
             e.target.reset();
         });
