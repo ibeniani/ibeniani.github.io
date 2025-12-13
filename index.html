@@ -16,53 +16,26 @@
     </style>
     <script type="module">
         // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
-  authDomain: "fastfix72-45e6b.firebaseapp.com",
-  projectId: "fastfix72-45e6b",
-  storageBucket: "fastfix72-45e6b.firebasestorage.app",
-  messagingSenderId: "90073792848",
-  appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
-  measurementId: "G-60F64PQP29"
-};
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
+          authDomain: "fastfix72-45e6b.firebaseapp.com",
+          projectId: "fastfix72-45e6b",
+          storageBucket: "fastfix72-45e6b.firebasestorage.app",
+          messagingSenderId: "90073792848",
+          appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
+          measurementId: "G-60F64PQP29"
+        };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// Charger les annonces au chargement de la page
-    window.addEventListener('load', async () => {
-        const salesContainer = document.querySelector('#ventes .row'); // Assure-toi que la section Ventes a une row
-        salesContainer.innerHTML = ''; // Vider avant de charger
-        try {
-            const querySnapshot = await db.collection('sales').get();
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const col = document.createElement('div');
-                col.className = 'col-md-4';
-                col.innerHTML = `
-                    <div class="card">
-                        <img src="${data.image || 'https://via.placeholder.com/200'}" class="card-img-top" alt="${data.model}">
-                        <div class="card-body">
-                            <h5 class="card-title">${data.model} - ${data.price}€</h5>
-                            <p class="card-text">${data.desc}</p>
-                            <a href="#contact" class="btn btn-success">Acheter</a>
-                        </div>
-                    </div>
-                `;
-                salesContainer.appendChild(col);
-            });
-        } catch (error) {
-            console.error('Error loading sales:', error);
-        }
-    });
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
     </script>
 </head>
 <body>
@@ -155,17 +128,7 @@ const analytics = getAnalytics(app);
         <div class="container">
             <h2>Téléphones d'Occasion en Vente</h2>
             <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
-                        <img src="https://source.unsplash.com/featured/?used-phone" class="card-img-top" alt="iPhone 11">
-                        <div class="card-body">
-                            <h5 class="card-title">iPhone 11 - 200€</h5>
-                            <p class="card-text">État neuf, garantie 6 mois.</p>
-                            <a href="#contact" class="btn btn-success">Acheter</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Ajoute d'autres cartes ici -->
+                <!-- Les annonces dynamiques seront chargées ici -->
             </div>
         </div>
     </section>
@@ -213,6 +176,52 @@ const analytics = getAnalytics(app);
             e.preventDefault();
             alert('Message envoyé ! (Intègre un vrai service pour l\'envoi réel)');
             // Exemple avec EmailJS : https://www.emailjs.com/
+        });
+    </script>
+
+    <!-- Scripts Firebase pour charger les annonces (ajoutés ici, juste avant </body>) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Initialisation Firebase (même config que dans le head)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
+            authDomain: "fastfix72-45e6b.firebaseapp.com",
+            projectId: "fastfix72-45e6b",
+            storageBucket: "fastfix72-45e6b.firebasestorage.app",
+            messagingSenderId: "90073792848",
+            appId: "1:90073792848:web:b4992b9265b1ba0cc9ac55",
+            measurementId: "G-60F64PQP29"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Charger les annonces au chargement de la page
+        window.addEventListener('load', async () => {
+            const salesContainer = document.querySelector('#ventes .row'); // Cible la row dans la section ventes
+            salesContainer.innerHTML = ''; // Vider avant de charger
+            try {
+                const querySnapshot = await db.collection('sales').get();
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4';
+                    col.innerHTML = `
+                        <div class="card">
+                            <img src="${data.image || 'https://via.placeholder.com/200'}" class="card-img-top" alt="${data.model}">
+                            <div class="card-body">
+                                <h5 class="card-title">${data.model} - ${data.price}€</h5>
+                                <p class="card-text">${data.desc}</p>
+                                <a href="#contact" class="btn btn-success">Acheter</a>
+                            </div>
+                        </div>
+                    `;
+                    salesContainer.appendChild(col);
+                });
+            } catch (error) {
+                console.error('Error loading sales:', error);
+            }
         });
     </script>
 </body>
