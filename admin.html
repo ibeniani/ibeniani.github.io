@@ -117,10 +117,10 @@
                 <table class="table table-striped" id="salesTable">
                     <thead>
                         <tr>
-                            <th>Image</th>
                             <th>Modèle</th>
                             <th>Prix</th>
                             <th>Description</th>
+                            <th>Image</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -130,87 +130,9 @@
         </div>
     </div>
 
-    <!-- Modals pour modification -->
-    <!-- Modal Client -->
-    <div class="modal fade" id="editClientModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Modifier Client</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control mb-3" id="editClientNom" placeholder="Nom">
-                    <input type="text" class="form-control mb-3" id="editClientPrenom" placeholder="Prénom">
-                    <input type="tel" class="form-control mb-3" id="editClientTel" placeholder="Téléphone">
-                    <input type="text" class="form-control mb-3" id="editClientModel" placeholder="Modèle Téléphone">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="saveClientBtn">Sauvegarder</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Réparation -->
-    <div class="modal fade" id="editRepairModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Modifier Réparation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <select class="form-control mb-3" id="editRepairClient">
-                        <option value="">Sélectionner un client</option>
-                    </select>
-                    <input type="text" class="form-control mb-3" id="editRepairProblem" placeholder="Problème">
-                    <input type="date" class="form-control mb-3" id="editRepairDate">
-                    <select class="form-control mb-3" id="editRepairStatus">
-                        <option value="En attente">En attente</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Terminée">Terminée</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="saveRepairBtn">Sauvegarder</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Vente -->
-    <div class="modal fade" id="editSaleModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Modifier Annonce</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control mb-3" id="editSaleModel" placeholder="Modèle">
-                    <input type="number" class="form-control mb-3" id="editSalePrice" placeholder="Prix (€)">
-                    <textarea class="form-control mb-3" id="editSaleDesc" placeholder="Description"></textarea>
-                    <input type="url" class="form-control mb-3" id="editSaleImage" placeholder="URL Image">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="saveSaleBtn">Sauvegarder</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded'); // Debug
-            try {
-                console.log('Script started'); // Debug
-
-                const firebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyCYboBQuUWjos9q0M6bD6GSuQ09Se29t9o",
             authDomain: "fastfix72-45e6b.firebaseapp.com",
             projectId: "fastfix72-45e6b",
@@ -220,148 +142,237 @@
             measurementId: "G-60F64PQP29"
         };
 
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log('Firebase initialized successfully');
-                } else {
-                    console.log('Firebase already initialized');
-                }
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-                const auth = firebase.auth();
-                const db = firebase.firestore();
+        console.log('Firebase initialized');
 
-                const loginForm = document.getElementById('loginForm');
-                const logoutBtn = document.getElementById('logoutBtn');
-                const loginSection = document.getElementById('loginSection');
-                const adminSection = document.getElementById('adminSection');
-                const loginError = document.getElementById('loginError');
+        const loginForm = document.getElementById('loginForm');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginSection = document.getElementById('loginSection');
+        const adminSection = document.getElementById('adminSection');
+        const loginError = document.getElementById('loginError');
 
-                loginForm.addEventListener('submit', async (e) => {
-                    console.log('Login form submitted');
-                    e.preventDefault(); // Bloque le refresh
-                    console.log('Prevent default called');
-                    const email = loginForm.email.value;
-                    const password = loginForm.password.value;
-                    console.log('Email:', email);
-                    try {
-                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                        console.log('Login successful, user:', userCredential.user.email);
-                        loginSection.style.display = 'none';
-                        adminSection.style.display = 'block';
-                        loadData();
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        loginError.textContent = 'Erreur : ' + error.message;
-                        loginError.style.display = 'block';
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Login form submitted');
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                console.log('Login successful');
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
+                loadData();
+            } catch (error) {
+                console.error('Login error:', error);
+                loginError.textContent = 'Erreur : ' + error.message;
+                loginError.style.display = 'block';
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await auth.signOut();
+            loginSection.style.display = 'block';
+            adminSection.style.display = 'none';
+        });
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('User logged in:', user.email);
+                loginSection.style.display = 'none';
+                adminSection.style.display = 'block';
+                loadData();
+            } else {
+                console.log('No user logged in');
+                loginSection.style.display = 'block';
+                adminSection.style.display = 'none';
+            }
+        });
+
+        async function loadData() {
+            try {
+                await loadClients();
+                await loadRepairs();
+                await loadSales();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        async function loadClients() {
+            const clientsTableBody = document.getElementById('clientsTableBody');
+            clientsTableBody.innerHTML = '';
+            const querySnapshot = await db.collection('clients').get();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.nom}</td>
+                    <td>${data.prenom}</td>
+                    <td>${data.tel}</td>
+                    <td>${data.model}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteClient('${doc.id}')">Supprimer</button></td>
+                `;
+                clientsTableBody.appendChild(row);
+            });
+            // Peupler le select pour les réparations
+            const repairClientSelect = document.getElementById('repairClient');
+            repairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = `${data.nom} ${data.prenom}`;
+                repairClientSelect.appendChild(option);
+            });
+        }
+
+        async function loadRepairs() {
+            const repairsTableBody = document.getElementById('repairsTableBody');
+            repairsTableBody.innerHTML = '';
+            const querySnapshot = await db.collection('repairs').get();
+            for (const doc of querySnapshot.docs) {
+                const data = doc.data();
+                // Récupérer le nom du client
+                let clientName = 'Client inconnu';
+                try {
+                    const clientDoc = await db.collection('clients').doc(data.clientId).get();
+                    if (clientDoc.exists) {
+                        const clientData = clientDoc.data();
+                        clientName = `${clientData.nom} ${clientData.prenom}`;
                     }
-                });
-
-                logoutBtn.addEventListener('click', async () => {
-                    await auth.signOut();
-                    loginSection.style.display = 'block';
-                    adminSection.style.display = 'none';
-                });
-
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        console.log('User logged in:', user.email);
-                        loginSection.style.display = 'none';
-                        adminSection.style.display = 'block';
-                        loadData();
-                    } else {
-                        console.log('No user logged in');
-                    }
-                });
-
-                async function loadData() {
-                    try {
-                        await loadClients();
-                        await loadRepairs();
-                        await loadSales();
-                    } catch (error) {
-                        console.error('Error loading data:', error);
-                    }
+                } catch (error) {
+                    console.error('Error fetching client:', error);
                 }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${clientName}</td>
+                    <td>${data.problem}</td>
+                    <td>${data.date}</td>
+                    <td>${data.status}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteRepair('${doc.id}')">Supprimer</button></td>
+                `;
+                repairsTableBody.appendChild(row);
+            }
+        }
 
-                async function loadClients() {
-                    const clientsTableBody = document.getElementById('clientsTableBody');
-                    clientsTableBody.innerHTML = '';
-                    const querySnapshot = await db.collection('clients').get();
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${data.nom}</td>
-                            <td>${data.prenom}</td>
-                            <td>${data.tel}</td>
-                            <td>${data.model}</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm me-2" onclick="editClient('${doc.id}', '${data.nom}', '${data.prenom}', '${data.tel}', '${data.model}')">Modifier</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteClient('${doc.id}')">Supprimer</button>
-                            </td>
-                        `;
-                        clientsTableBody.appendChild(row);
-                    });
-                    // Peupler les selects
-                    const repairClientSelect = document.getElementById('repairClient');
-                    const editRepairClientSelect = document.getElementById('editRepairClient');
-                    repairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
-                    editRepairClientSelect.innerHTML = '<option value="">Sélectionner un client</option>';
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const option1 = document.createElement('option');
-                        option1.value = doc.id;
-                        option1.textContent = `${data.nom} ${data.prenom}`;
-                        repairClientSelect.appendChild(option1);
-                        const option2 = option1.cloneNode(true);
-                        editRepairClientSelect.appendChild(option2);
-                    });
+        async function loadSales() {
+            const salesTableBody = document.getElementById('salesTableBody');
+            salesTableBody.innerHTML = '';
+            const querySnapshot = await db.collection('sales').get();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.model}</td>
+                    <td>${data.price}€</td>
+                    <td>${data.desc}</td>
+                    <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSale('${doc.id}')">Supprimer</button></td>
+                `;
+                salesTableBody.appendChild(row);
+            });
+        }
+
+        // Barre de recherche pour clients
+        document.getElementById('searchClients').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#clientsTableBody tr');
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                row.style.display = name.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('addClientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const nom = document.getElementById('clientNom').value;
+                const prenom = document.getElementById('clientPrenom').value;
+                const tel = document.getElementById('clientTel').value;
+                const model = document.getElementById('clientModel').value;
+                await db.collection('clients').add({ nom, prenom, tel, model });
+                loadClients();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding client:', error);
+                alert('Erreur lors de l\'ajout du client : ' + error.message);
+            }
+        });
+
+        document.getElementById('addRepairForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const clientId = document.getElementById('repairClient').value;
+                const problem = document.getElementById('repairProblem').value;
+                const date = document.getElementById('repairDate').value;
+                const status = document.getElementById('repairStatus').value;
+                await db.collection('repairs').add({ clientId, problem, date, status });
+                loadRepairs();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding repair:', error);
+                alert('Erreur lors de l\'ajout de la réparation : ' + error.message);
+            }
+        });
+
+        document.getElementById('addSaleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const model = document.getElementById('saleModel').value;
+                const price = document.getElementById('salePrice').value;
+                const desc = document.getElementById('saleDesc').value;
+                const image = document.getElementById('saleImage').value;
+                await db.collection('sales').add({ model, price, desc, image });
+                loadSales();
+                e.target.reset();
+            } catch (error) {
+                console.error('Error adding sale:', error);
+                alert('Erreur lors de l\'ajout de l\'annonce : ' + error.message);
+            }
+        });
+
+        // Fonctions de suppression
+        window.deleteClient = async (id) => {
+            if (confirm('Supprimer ce client ?')) {
+                try {
+                    await db.collection('clients').doc(id).delete();
+                    loadClients();
+                } catch (error) {
+                    console.error('Error deleting client:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
                 }
+            }
+        };
 
-                async function loadRepairs() {
-                    const repairsTableBody = document.getElementById('repairsTableBody');
-                    repairsTableBody.innerHTML = '';
-                    const querySnapshot = await db.collection('repairs').get();
-                    for (const doc of querySnapshot.docs) {
-                        const data = doc.data();
-                        let clientName = 'Client inconnu';
-                        try {
-                            const clientDoc = await db.collection('clients').doc(data.clientId).get();
-                            if (clientDoc.exists) {
-                                const clientData = clientDoc.data();
-                                clientName = `${clientData.nom} ${clientData.prenom}`;
-                            }
-                        } catch (error) {
-                            console.error('Error fetching client:', error);
-                        }
-                        const statusBadge = data.status === 'En attente' ? 'badge bg-warning' : data.status === 'En cours' ? 'badge bg-danger' : 'badge bg-success';
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${clientName}</td>
-                            <td>${data.problem}</td>
-                            <td>${data.date}</td>
-                            <td><span class="${statusBadge}">${data.status}</span></td>
-                            <td>
-                                <button class="btn btn-warning btn-sm me-2" onclick="editRepair('${doc.id}', '${data.clientId}', '${data.problem}', '${data.date}', '${data.status}')">Modifier</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteRepair('${doc.id}')">Supprimer</button>
-                            </td>
-                        `;
-                        repairsTableBody.appendChild(row);
-                    }
+        window.deleteRepair = async (id) => {
+            if (confirm('Supprimer cette réparation ?')) {
+                try {
+                    await db.collection('repairs').doc(id).delete();
+                    loadRepairs();
+                } catch (error) {
+                    console.error('Error deleting repair:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
                 }
+            }
+        };
 
-                async function loadSales() {
-                    const salesTableBody = document.getElementById('salesTableBody');
-                    salesTableBody.innerHTML = '';
-                    const querySnapshot = await db.collection('sales').get();
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td><img src="${data.image}" alt="${data.model}" style="width: 50px; height: 50px; cursor: pointer;" onclick="window.open('${data.image}', '_blank')"></td>
-                            <td>${data.model}</td>
-                            <td>${data.price}€</td>
-                            <td>${data.desc}</td>
+        window.deleteSale = async (id) => {
+            if (confirm('Supprimer cette annonce ?')) {
+                try {
+                    await db.collection('sales').doc(id).delete();
+                    loadSales();
+                } catch (error) {
+                    console.error('Error deleting sale:', error);
+                    alert('Erreur lors de la suppression : ' + error.message);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
                     
 
 <!--  
