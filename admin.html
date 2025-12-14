@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    <!-- Modals pour modification -->
+        <!-- Modals pour modification -->
     <!-- Modal Client -->
     <div class="modal fade" id="editClientModal" tabindex="-1">
         <div class="modal-dialog">
@@ -140,10 +140,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-3" id="editClientNom" placeholder="Nom">
-                    <input type="text" class="form-control mb-3" id="editClientPrenom" placeholder="Prénom">
-                    <input type="tel" class="form-control mb-3" id="editClientTel" placeholder="Téléphone">
-                    <input type="text" class="form-control mb-3" id="editClientModel" placeholder="Modèle Téléphone">
+                    <div class="mb-3">
+                        <label for="editClientNom" class="form-label">Nom :</label>
+                        <input type="text" class="form-control" id="editClientNom">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientPrenom" class="form-label">Prénom :</label>
+                        <input type="text" class="form-control" id="editClientPrenom">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientTel" class="form-label">Téléphone :</label>
+                        <input type="tel" class="form-control" id="editClientTel">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientModel" class="form-label">Modèle Téléphone :</label>
+                        <input type="text" class="form-control" id="editClientModel">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -162,16 +174,28 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <select class="form-control mb-3" id="editRepairClient">
-                        <option value="">Sélectionner un client</option>
-                    </select>
-                    <input type="text" class="form-control mb-3" id="editRepairProblem" placeholder="Problème">
-                    <input type="date" class="form-control mb-3" id="editRepairDate">
-                    <select class="form-control mb-3" id="editRepairStatus">
-                        <option value="En attente">En attente</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Terminée">Terminée</option>
-                    </select>
+                    <div class="mb-3">
+                        <label for="editRepairClient" class="form-label">Client :</label>
+                        <select class="form-control" id="editRepairClient">
+                            <option value="">Sélectionner un client</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRepairProblem" class="form-label">Problème :</label>
+                        <input type="text" class="form-control" id="editRepairProblem">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRepairDate" class="form-label">Date de dépôt :</label>
+                        <input type="date" class="form-control" id="editRepairDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRepairStatus" class="form-label">Statut :</label>
+                        <select class="form-control" id="editRepairStatus">
+                            <option value="En attente">En attente</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Terminée">Terminée</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -190,10 +214,22 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-3" id="editSaleModel" placeholder="Modèle">
-                    <input type="number" class="form-control mb-3" id="editSalePrice" placeholder="Prix (€)">
-                    <textarea class="form-control mb-3" id="editSaleDesc" placeholder="Description"></textarea>
-                    <input type="url" class="form-control mb-3" id="editSaleImage" placeholder="URL Image">
+                    <div class="mb-3">
+                        <label for="editSaleModel" class="form-label">Modèle :</label>
+                        <input type="text" class="form-control" id="editSaleModel">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSalePrice" class="form-label">Prix (€) :</label>
+                        <input type="number" class="form-control" id="editSalePrice">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSaleDesc" class="form-label">Description :</label>
+                        <textarea class="form-control" id="editSaleDesc"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSaleImage" class="form-label">URL Image :</label>
+                        <input type="url" class="form-control" id="editSaleImage">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
