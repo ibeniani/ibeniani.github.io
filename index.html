@@ -13,6 +13,34 @@
         .hero h1 { font-size: 3rem; }
         .section { padding: 50px 0; }
         .card { margin-bottom: 20px; }
+        .popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.popup-content button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
     </style>
     <script type="module">
         // Import the functions you need from the SDKs you need
@@ -224,5 +252,18 @@
             }
         });
     </script>
+    <div id="popup" class="popup-overlay">
+  <div class="popup-content">
+    <h2>Information importante</h2>
+    <p>Bienvenue sur notre site, il est en cours de création et sera bientot disponible, si besoin de nos services merci de nous contacter au 06.62.59.51.96</p>
+    <button onclick="closePopup()">J’ai compris</button>
+  </div>
+</div>
+    <script>
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+  }
+</script>
+
 </body>
 </html>
